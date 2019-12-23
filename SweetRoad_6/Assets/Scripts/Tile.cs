@@ -4,14 +4,14 @@ using UnityEngine;
 
 public class Tile : MonoBehaviour
 {
-    private int tile_index_x, tile_index_y;
+    Index tile_index;
     private bool clicked;
     public float mouse_sensitivity = 10.0f;
     Vector2 mouse_offset;
     public void SetIndex(int x, int y)
     {
-        tile_index_x = x;
-        tile_index_y = y;
+        tile_index.x = x;
+        tile_index.y = y;
     }
     void Start()
     {
@@ -27,6 +27,7 @@ public class Tile : MonoBehaviour
     private void OnMouseDown()
     {
         clicked = true;
+        print(tile_index.x + "," + tile_index.y);
         mouse_offset = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
     }
 
@@ -37,20 +38,20 @@ public class Tile : MonoBehaviour
 
         if (clicked)
         {
-            Board.Array drag_array = Board.Array.NONE;
+            Index move_index = tile_index;
             if (dy > mouse_sensitivity)
-                drag_array = Board.Array.UP;
+                move_index.y++;
             else if (dy < -mouse_sensitivity)
-                drag_array = Board.Array.DOWN;
+                move_index.y--;
             else if (dx < -mouse_sensitivity)
-                drag_array = Board.Array.LEFT;
+                move_index.x--;
             else if (dx > mouse_sensitivity)
-                drag_array = Board.Array.RIGHT;
+                move_index.x++;
 
-            if (drag_array != Board.Array.NONE)
+            if (move_index.x != tile_index.x || move_index.y != tile_index.y)
             {
                 clicked = false;
-                GetComponentInParent<Board>().MoveTile(tile_index_x, tile_index_y, drag_array);
+                StartCoroutine(GetComponentInParent<Board>().MoveTile(tile_index, move_index));
             }
         }
     }
