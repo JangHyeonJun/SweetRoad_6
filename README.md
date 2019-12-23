@@ -12,7 +12,7 @@
 
 ### 게임 화면
 
-![](C:\Users\totok\AppData\Roaming\Typora\typora-user-images\1577071002436.png)
+![](https://user-images.githubusercontent.com/18680116/71333617-fdf43080-257d-11ea-8640-6ac5f8a7f646.png)
 
 
 
