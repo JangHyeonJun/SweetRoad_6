@@ -57,21 +57,24 @@ public class Board : MonoBehaviour
         Sprite origin = tiles[offset.y, offset.x].GetComponent<SpriteRenderer>().sprite;
         List<Index> horizontal_indices = new List<Index>();
         List<Index> vertical_indices = new List<Index>();
-        int i = 0;
+        horizontal_indices.Add(new Index(offset.x, offset.y));
+        vertical_indices.Add(new Index(offset.x, offset.y));
+
+        int i = 1;
         while (offset.x - i >= 0 && tiles[offset.y, offset.x - i].GetComponent<SpriteRenderer>().sprite == origin)
             horizontal_indices.Add(new Index(offset.x - i++, offset.y));
-        i = 0;
+        i = 1;
         while (offset.x + i < board_size && tiles[offset.y, offset.x + i].GetComponent<SpriteRenderer>().sprite == origin)
             horizontal_indices.Add(new Index(offset.x + i++, offset.y));
-        i = 0;
+        i = 1;
         while (offset.y - i >= 0 && tiles[offset.y - i, offset.x].GetComponent<SpriteRenderer>().sprite == origin)
             vertical_indices.Add(new Index(offset.x, offset.y - i++));
-        i = 0;
+        i = 1;
         while (offset.y + i < board_size && tiles[offset.y + i, offset.x].GetComponent<SpriteRenderer>().sprite == origin)
             vertical_indices.Add(new Index(offset.x, offset.y + i++));
 
         if (horizontal_indices.Count > 2)
-            for (int j = 0; i < horizontal_indices.Count; i++)
+            for (int j = 0; j < horizontal_indices.Count; j++)
             {
                 int x = horizontal_indices[j].x;
                 int y = horizontal_indices[j].y;
@@ -79,7 +82,7 @@ public class Board : MonoBehaviour
             }
 
         if (vertical_indices.Count > 2)
-            for (int j = 0; i < vertical_indices.Count; i++)
+            for (int j = 0; j < vertical_indices.Count; j++)
             {
                 int x = vertical_indices[j].x;
                 int y = vertical_indices[j].y;
@@ -101,9 +104,9 @@ public class Board : MonoBehaviour
                     offset.position.y + render_size.y * i, 0), transform.rotation);
 
                 List<Sprite> non_repeated_sprites = new List<Sprite>(tile_sprites);
-                if (j - 2 > 0)
+                if (j - 2 >= 0)
                     non_repeated_sprites.Remove(tiles[i, j - 2].GetComponent<SpriteRenderer>().sprite);
-                if (i - 2 > 0)
+                if (i - 2 >= 0)
                     non_repeated_sprites.Remove(tiles[i - 2, j].GetComponent<SpriteRenderer>().sprite);
 
                 new_tile.GetComponent<SpriteRenderer>().sprite = non_repeated_sprites[Random.Range(0, non_repeated_sprites.Count)];

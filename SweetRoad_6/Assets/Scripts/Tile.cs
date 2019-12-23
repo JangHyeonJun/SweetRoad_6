@@ -27,7 +27,7 @@ public class Tile : MonoBehaviour
     private void OnMouseDown()
     {
         clicked = true;
-        print(tile_index.x + "," + tile_index.y);
+        print("[" + tile_index.y + "," + tile_index.x + "]");
         mouse_offset = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
     }
 
