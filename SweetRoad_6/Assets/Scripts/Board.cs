@@ -90,7 +90,7 @@ public class Board : MonoBehaviour
             yield return new WaitForSeconds(0.3f);
         }
 
-        yield return new WaitForSeconds(0.5f);
+        //yield return new WaitForSeconds(0.5f);
 
         List<Index> matched_indices = new List<Index>();
         for (int k = 0; k < board_size; k++)
@@ -134,6 +134,7 @@ public class Board : MonoBehaviour
                     int x = horizontal_indices[j].x;
                     int y = horizontal_indices[j].y;
                     tiles[y, x].GetComponent<SpriteRenderer>().sprite = null;
+                    tiles[y, x].GetComponent<Tile>().particle.GetComponent<ParticleSystem>().Play();
                 }
 
             if (vertical_indices.Count > 2)
@@ -142,6 +143,7 @@ public class Board : MonoBehaviour
                     int x = vertical_indices[j].x;
                     int y = vertical_indices[j].y;
                     tiles[y, x].GetComponent<SpriteRenderer>().sprite = null;
+                    tiles[y, x].GetComponent<Tile>().particle.GetComponent<ParticleSystem>().Play();
                 }
 
             if (horizontal_indices.Count > 2 || vertical_indices.Count > 2)

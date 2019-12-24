@@ -4,10 +4,12 @@ using UnityEngine;
 
 public class Tile : MonoBehaviour
 {
-    Index tile_index;
-    private bool clicked;
     public float mouse_sensitivity = 10.0f;
+    public GameObject particle;
+    Index tile_index;
     Vector2 mouse_offset;
+
+    private bool clicked;
     public void SetIndex(int x, int y)
     {
         tile_index.x = x;
