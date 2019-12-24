@@ -27,7 +27,6 @@ public class Tile : MonoBehaviour
     private void OnMouseDown()
     {
         clicked = true;
-        print("[" + tile_index.y + "," + tile_index.x + "]");
         mouse_offset = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
     }
 
@@ -38,20 +37,20 @@ public class Tile : MonoBehaviour
 
         if (clicked)
         {
-            Index move_index = tile_index;
+            Index swap_index = tile_index;
             if (dy > mouse_sensitivity)
-                move_index.y++;
+                swap_index.y++;
             else if (dy < -mouse_sensitivity)
-                move_index.y--;
+                swap_index.y--;
             else if (dx < -mouse_sensitivity)
-                move_index.x--;
+                swap_index.x--;
             else if (dx > mouse_sensitivity)
-                move_index.x++;
+                swap_index.x++;
 
-            if (move_index.x != tile_index.x || move_index.y != tile_index.y)
+            if (swap_index.x != tile_index.x || swap_index.y != tile_index.y)
             {
                 clicked = false;
-                StartCoroutine(GetComponentInParent<Board>().MoveTile(tile_index, move_index));
+                StartCoroutine(GetComponentInParent<Board>().SwapTile(tile_index, swap_index));
             }
         }
     }
