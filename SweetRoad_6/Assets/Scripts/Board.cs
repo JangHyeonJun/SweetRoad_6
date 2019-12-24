@@ -46,7 +46,7 @@ public class Board : MonoBehaviour
 
             yield return new WaitForSeconds(0.5f);
 
-            List<Index> matched_indices= new List<Index>();
+            List<Index> matched_indices = new List<Index>();
             matched_indices.AddRange(Match(tile_index));
             matched_indices.AddRange(Match(swap_index));
 
@@ -54,11 +54,11 @@ public class Board : MonoBehaviour
             {
                 for (int i = 0; i < matched_indices.Count; i++)
                     StartCoroutine(DropTile(matched_indices[i]));
-                isMoving = false;
             }
             else if (swap_index.y >= 0 && swap_index.x >= 0 && swap_index.y < board_size && swap_index.x < board_size)
             {
                 SwapSprite(ref tiles[tile_index.y, tile_index.x], ref tiles[swap_index.y, swap_index.x]);
+                yield return new WaitForSeconds(0.3f);
                 isMoving = false;
             }
         }
@@ -66,6 +66,7 @@ public class Board : MonoBehaviour
 
     public IEnumerator DropTile(Index drop_index)
     {
+        isMoving = true;
         int x = drop_index.x;
         int y = drop_index.y;
         int i = 0;
@@ -80,24 +81,28 @@ public class Board : MonoBehaviour
             null_tile_count++;
         }
 
-        if (null_tile_count > 0)
-            isMoving = true;
-
-        for (i=0; i<null_tile_count; i++)
+        for (i = 0; i < null_tile_count; i++)
         {
-            for (int j = y + 1; j < board_size; j++)
-                tiles[j - 1, x].GetComponent<SpriteRenderer>().sprite = tiles[j, x].GetComponent<SpriteRenderer>().sprite;
+            for (int j = y; j < board_size-1; j++)
+                tiles[j, x].GetComponent<SpriteRenderer>().sprite = tiles[j + 1, x].GetComponent<SpriteRenderer>().sprite;
             tiles[board_size - 1, x].GetComponent<SpriteRenderer>().sprite = tile_sprites[Random.Range(0, tile_sprites.Count)];
+            Audio.instance.PlayDropSound();
             yield return new WaitForSeconds(0.3f);
         }
 
-        if (null_tile_count > 0)
-            isMoving = false;
+        yield return new WaitForSeconds(0.5f);
 
-        yield return new WaitForSeconds(1.0f);
-
+        List<Index> matched_indices = new List<Index>();
         for (int k = 0; k < board_size; k++)
-            Match(new Index(k, x));
+            matched_indices.AddRange(Match(new Index(x, k)));
+
+        if (matched_indices.Count > 0)
+        {
+            for (int k = 0; k < matched_indices.Count; k++)
+                StartCoroutine(DropTile(matched_indices[k]));
+        }
+
+        isMoving = false;
     }
 
     public List<Index> Match(Index offset)
@@ -140,7 +145,10 @@ public class Board : MonoBehaviour
                 }
 
             if (horizontal_indices.Count > 2 || vertical_indices.Count > 2)
+            {
+                Audio.instance.PlayMatchSound();
                 return horizontal_indices;
+            }
             else
                 return new List<Index>();
         }
