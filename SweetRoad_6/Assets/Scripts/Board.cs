@@ -69,26 +69,41 @@ public class Board : MonoBehaviour
         isMoving = true;
         int x = drop_index.x;
         int y = drop_index.y;
-        int i = 0;
-        int null_tile_count = 0;
-        // check up
-        while (y + i < board_size && tiles[y + i++, x].GetComponent<SpriteRenderer>().sprite == null)
-            null_tile_count++;
-        // check down
-        while (y > 0 && tiles[y - 1, x].GetComponent<SpriteRenderer>().sprite == null)
+
+        for (int i = 0; i < board_size;)
         {
-            y--;
-            null_tile_count++;
+            if (tiles[i, x].GetComponent<SpriteRenderer>().sprite == null)
+            {
+                for (int j = i; j < board_size - 1; j++)
+                    SwapSprite(ref tiles[j, x], ref tiles[j + 1, x]);
+                tiles[board_size - 1, x].GetComponent<SpriteRenderer>().sprite = tile_sprites[Random.Range(0, tile_sprites.Count)];
+                Audio.instance.PlayDropSound();
+                yield return new WaitForSeconds(0.2f);
+            }
+            else
+                i++; 
         }
 
-        for (i = 0; i < null_tile_count; i++)
-        {
-            for (int j = y; j < board_size-1; j++)
-                tiles[j, x].GetComponent<SpriteRenderer>().sprite = tiles[j + 1, x].GetComponent<SpriteRenderer>().sprite;
-            tiles[board_size - 1, x].GetComponent<SpriteRenderer>().sprite = tile_sprites[Random.Range(0, tile_sprites.Count)];
-            Audio.instance.PlayDropSound();
-            yield return new WaitForSeconds(0.3f);
-        }
+        //int i = 0;
+        //int null_tile_count = 0;
+        //// check up
+        //while (y + i < board_size && tiles[y + i++, x].GetComponent<SpriteRenderer>().sprite == null)
+        //    null_tile_count++;
+        //// check down
+        //while (y > 0 && tiles[y - 1, x].GetComponent<SpriteRenderer>().sprite == null)
+        //{
+        //    y--;
+        //    null_tile_count++;
+        //}
+
+        //for (i = 0; i < null_tile_count; i++)
+        //{
+        //    for (int j = y; j < board_size - 1; j++)
+        //        tiles[j, x].GetComponent<SpriteRenderer>().sprite = tiles[j + 1, x].GetComponent<SpriteRenderer>().sprite;
+        //    tiles[board_size - 1, x].GetComponent<SpriteRenderer>().sprite = tile_sprites[Random.Range(0, tile_sprites.Count)];
+        //    Audio.instance.PlayDropSound();
+        //    yield return new WaitForSeconds(0.2f);
+        //}
 
         //yield return new WaitForSeconds(0.5f);
 
