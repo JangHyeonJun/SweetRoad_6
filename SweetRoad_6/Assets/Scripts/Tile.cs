@@ -40,19 +40,35 @@ public class Tile : MonoBehaviour
         if (clicked)
         {
             Index swap_index = tile_index;
+            Board.Array array = Board.Array.NONE;
             if (dy > mouse_sensitivity)
+            {
                 swap_index.y++;
+                array = Board.Array.UP;
+            }
             else if (dy < -mouse_sensitivity)
+            {
                 swap_index.y--;
+                array = Board.Array.DOWN;
+            }
             else if (dx < -mouse_sensitivity)
+            {
                 swap_index.x--;
+                array = Board.Array.LEFT;
+            }
             else if (dx > mouse_sensitivity)
+            {
                 swap_index.x++;
+                array = Board.Array.RIGHT;
+            }
 
             if (swap_index.x != tile_index.x || swap_index.y != tile_index.y)
             {
                 clicked = false;
-                StartCoroutine(GetComponentInParent<Board>().SwapTile(tile_index, swap_index));
+                if (GetComponent<SpriteRenderer>().sprite == GetComponentInParent<Board>().munchkin_sprite)
+                    StartCoroutine(GetComponentInParent<Board>().RollTile(tile_index, array));
+                else
+                    StartCoroutine(GetComponentInParent<Board>().SwapTile(tile_index, swap_index));
             }
         }
     }

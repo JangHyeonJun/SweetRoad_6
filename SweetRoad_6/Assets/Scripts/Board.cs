@@ -37,6 +37,66 @@ public class Board : MonoBehaviour
         a.GetComponent<SpriteRenderer>().sprite = b.GetComponent<SpriteRenderer>().sprite;
         b.GetComponent<SpriteRenderer>().sprite = temp;
     }
+
+    public IEnumerator RollTile(Index offset, Array array)
+    {
+        isMoving = true;
+        HashSet<Index> matched_cols = new HashSet<Index>();
+        switch (array)
+        {
+            case Array.UP:
+                for(int i = offset.y; i < board_size; i++)
+                {
+                    tiles[i, offset.x].GetComponent<SpriteRenderer>().sprite = munchkin_sprite;
+                    yield return new WaitForSeconds(0.1f);
+                    tiles[i, offset.x].GetComponent<SpriteRenderer>().sprite = null;
+                    tiles[i, offset.x].GetComponent<Tile>().particle.GetComponent<ParticleSystem>().Play();
+                    Audio.instance.PlayMatchSound();
+                    matched_cols.Add(new Index(offset.x, 0));
+                }
+                break;
+            case Array.DOWN:
+                for (int i = offset.y; i >= 0; i--)
+                {
+                    tiles[i, offset.x].GetComponent<SpriteRenderer>().sprite = munchkin_sprite;
+                    yield return new WaitForSeconds(0.1f);
+                    tiles[i, offset.x].GetComponent<SpriteRenderer>().sprite = null;
+                    tiles[i, offset.x].GetComponent<Tile>().particle.GetComponent<ParticleSystem>().Play();
+                    Audio.instance.PlayMatchSound();
+                    matched_cols.Add(new Index(offset.x, 0));
+                }
+                break;
+            case Array.LEFT:
+                for (int i = offset.x; i >= 0; i--)
+                {
+                    tiles[offset.y, i].GetComponent<SpriteRenderer>().sprite = munchkin_sprite;
+                    yield return new WaitForSeconds(0.1f);
+                    tiles[offset.y, i].GetComponent<SpriteRenderer>().sprite = null;
+                    tiles[offset.y, i].GetComponent<Tile>().particle.GetComponent<ParticleSystem>().Play();
+                    Audio.instance.PlayMatchSound();
+                    matched_cols.Add(new Index(i, 0));
+                }
+                break;
+            case Array.RIGHT:
+                for (int i = offset.x; i < board_size; i++)
+                {
+                    tiles[offset.y, i].GetComponent<SpriteRenderer>().sprite = munchkin_sprite;
+                    yield return new WaitForSeconds(0.1f);
+                    tiles[offset.y, i].GetComponent<SpriteRenderer>().sprite = null;
+                    tiles[offset.y, i].GetComponent<Tile>().particle.GetComponent<ParticleSystem>().Play();
+                    Audio.instance.PlayMatchSound();
+                    matched_cols.Add(new Index(i, 0));
+                }
+                break;
+            default:
+                break;
+        }
+        foreach (Index i in matched_cols)
+            StartCoroutine(DropTile(i));
+        isMoving = false;
+        yield return null;
+    }
+
     public IEnumerator SwapTile(Index tile_index, Index swap_index, float swap_delay = 0.3f)
     {
         if (!isMoving)
@@ -54,6 +114,7 @@ public class Board : MonoBehaviour
             if (matched_indices.Count > 0)
             {
                 HashSet<Index> matched_cols = ClearTiles(matched_indices);
+                yield return new WaitForSeconds(swap_delay);
                 foreach (Index i in matched_cols)
                     StartCoroutine(DropTile(i));
                 
@@ -103,22 +164,22 @@ public class Board : MonoBehaviour
     HashSet<Index> GetSquareMatchedIndices(Index offset, Sprite origin)
     {
         HashSet<Index> square_indices = new HashSet<Index>();
-        square_indices.Add(new Index(offset.y, offset.x));
+        square_indices.Add(new Index(offset.x, offset.y));
         if (offset.x > 0 && tiles[offset.y, offset.x - 1].GetComponent<SpriteRenderer>().sprite == origin) // left
         {
             if (offset.y < board_size - 1 && tiles[offset.y + 1, offset.x].GetComponent<SpriteRenderer>().sprite == origin &&
                 offset.y < board_size - 1 && tiles[offset.y + 1, offset.x - 1].GetComponent<SpriteRenderer>().sprite == origin) // up
             {
-                square_indices.Add(new Index(offset.y, offset.x - 1));
-                square_indices.Add(new Index(offset.y + 1, offset.x));
-                square_indices.Add(new Index(offset.y + 1, offset.x - 1));
+                square_indices.Add(new Index(offset.x - 1, offset.y));
+                square_indices.Add(new Index(offset.x, offset.y + 1));
+                square_indices.Add(new Index(offset.x - 1, offset.y + 1));
             }
             if (offset.y > 0 && tiles[offset.y - 1, offset.x].GetComponent<SpriteRenderer>().sprite == origin &&
                 offset.y > 0 && tiles[offset.y - 1, offset.x - 1].GetComponent<SpriteRenderer>().sprite == origin) // down
             {
-                square_indices.Add(new Index(offset.y, offset.x - 1));
-                square_indices.Add(new Index(offset.y - 1, offset.x));
-                square_indices.Add(new Index(offset.y - 1, offset.x - 1));
+                square_indices.Add(new Index(offset.x - 1, offset.y));
+                square_indices.Add(new Index(offset.x, offset.y - 1));
+                square_indices.Add(new Index(offset.x - 1, offset.y - 1));
             }
         }
         if (offset.x < board_size - 1 && tiles[offset.y, offset.x + 1].GetComponent<SpriteRenderer>().sprite == origin) // right
@@ -126,16 +187,16 @@ public class Board : MonoBehaviour
             if (offset.y < board_size - 1 && tiles[offset.y + 1, offset.x].GetComponent<SpriteRenderer>().sprite == origin &&
                 offset.y < board_size - 1 && tiles[offset.y + 1, offset.x + 1].GetComponent<SpriteRenderer>().sprite == origin) // up
             {
-                square_indices.Add(new Index(offset.y, offset.x + 1));
-                square_indices.Add(new Index(offset.y + 1, offset.x));
-                square_indices.Add(new Index(offset.y + 1, offset.x + 1));
+                square_indices.Add(new Index(offset.x + 1, offset.y));
+                square_indices.Add(new Index(offset.x, offset.y + 1));
+                square_indices.Add(new Index(offset.x + 1, offset.y + 1));
             }
             if (offset.y > 0 && tiles[offset.y - 1, offset.x].GetComponent<SpriteRenderer>().sprite == origin &&
                 offset.y > 0 && tiles[offset.y - 1, offset.x + 1].GetComponent<SpriteRenderer>().sprite == origin) // down
             {
-                square_indices.Add(new Index(offset.y, offset.x + 1));
-                square_indices.Add(new Index(offset.y - 1, offset.x));
-                square_indices.Add(new Index(offset.y - 1, offset.x + 1));
+                square_indices.Add(new Index(offset.x + 1, offset.y));
+                square_indices.Add(new Index(offset.x, offset.y - 1));
+                square_indices.Add(new Index(offset.x + 1, offset.y - 1));
             }
         }
 
