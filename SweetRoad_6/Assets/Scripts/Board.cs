@@ -13,6 +13,7 @@ public class Board : MonoBehaviour
     const int board_size = 7;
     public GameObject origin_tile;
     public List<Sprite> tile_sprites;
+    public Sprite munchkin_sprite;
     public Transform offset;
 
     private GameObject[,] tiles;
@@ -36,7 +37,7 @@ public class Board : MonoBehaviour
         a.GetComponent<SpriteRenderer>().sprite = b.GetComponent<SpriteRenderer>().sprite;
         b.GetComponent<SpriteRenderer>().sprite = temp;
     }
-    public IEnumerator SwapTile(Index tile_index, Index swap_index)
+    public IEnumerator SwapTile(Index tile_index, Index swap_index, float swap_delay = 0.3f)
     {
         if (!isMoving)
         {
@@ -44,7 +45,7 @@ public class Board : MonoBehaviour
             if (swap_index.y >= 0 && swap_index.x >= 0 && swap_index.y < board_size && swap_index.x < board_size)
                 SwapSprite(ref tiles[tile_index.y, tile_index.x], ref tiles[swap_index.y, swap_index.x]);
 
-            yield return new WaitForSeconds(0.5f);
+            yield return new WaitForSeconds(swap_delay);
 
             List<Index> matched_indices = new List<Index>();
             matched_indices.AddRange(Match(tile_index));
@@ -58,13 +59,13 @@ public class Board : MonoBehaviour
             else if (swap_index.y >= 0 && swap_index.x >= 0 && swap_index.y < board_size && swap_index.x < board_size)
             {
                 SwapSprite(ref tiles[tile_index.y, tile_index.x], ref tiles[swap_index.y, swap_index.x]);
-                yield return new WaitForSeconds(0.3f);
+                yield return new WaitForSeconds(swap_delay);
                 isMoving = false;
             }
         }
     }
 
-    public IEnumerator DropTile(Index drop_index)
+    public IEnumerator DropTile(Index drop_index, float drop_delay = 0.2f)
     {
         isMoving = true;
         int x = drop_index.x;
@@ -78,34 +79,11 @@ public class Board : MonoBehaviour
                     SwapSprite(ref tiles[j, x], ref tiles[j + 1, x]);
                 tiles[board_size - 1, x].GetComponent<SpriteRenderer>().sprite = tile_sprites[Random.Range(0, tile_sprites.Count)];
                 Audio.instance.PlayDropSound();
-                yield return new WaitForSeconds(0.2f);
+                yield return new WaitForSeconds(drop_delay);
             }
             else
                 i++; 
         }
-
-        //int i = 0;
-        //int null_tile_count = 0;
-        //// check up
-        //while (y + i < board_size && tiles[y + i++, x].GetComponent<SpriteRenderer>().sprite == null)
-        //    null_tile_count++;
-        //// check down
-        //while (y > 0 && tiles[y - 1, x].GetComponent<SpriteRenderer>().sprite == null)
-        //{
-        //    y--;
-        //    null_tile_count++;
-        //}
-
-        //for (i = 0; i < null_tile_count; i++)
-        //{
-        //    for (int j = y; j < board_size - 1; j++)
-        //        tiles[j, x].GetComponent<SpriteRenderer>().sprite = tiles[j + 1, x].GetComponent<SpriteRenderer>().sprite;
-        //    tiles[board_size - 1, x].GetComponent<SpriteRenderer>().sprite = tile_sprites[Random.Range(0, tile_sprites.Count)];
-        //    Audio.instance.PlayDropSound();
-        //    yield return new WaitForSeconds(0.2f);
-        //}
-
-        //yield return new WaitForSeconds(0.5f);
 
         List<Index> matched_indices = new List<Index>();
         for (int k = 0; k < board_size; k++)
@@ -120,28 +98,76 @@ public class Board : MonoBehaviour
         isMoving = false;
     }
 
+    List<Index> GetSquareMatchedIndices(Index offset, Sprite origin)
+    {
+        List<Index> square_indices = new List<Index>();
+        HashSet<Index> square_indices2 = new HashSet<Index>();
+        if (offset.x > 0 && tiles[offset.y, offset.x - 1].GetComponent<SpriteRenderer>().sprite == origin) // left
+        {
+            if (offset.y < board_size - 1 && tiles[offset.y + 1, offset.x - 1] == origin) // up
+            {
+                square_indices.Add(new Index(offset.y, offset.x-1));
+                square_indices.Add(new Index(offset.y+1, offset.x));
+                square_indices.Add(new Index(offset.y+1, offset.x-1));
+            }
+            if (offset.y > 0 && tiles[offset.y - 1, offset.x - 1] == origin) // down
+            {
+                square_indices.Add(new Index(offset.y, offset.x - 1));
+                square_indices.Add(new Index(offset.y - 1, offset.x));
+                square_indices.Add(new Index(offset.y - 1, offset.x - 1));
+            }
+        }
+        if (offset.x < board_size - 1 && tiles[offset.y, offset.x + 1].GetComponent<SpriteRenderer>().sprite == origin) // right
+        {
+            if (offset.y < board_size - 1 && tiles[offset.y + 1, offset.x + 1] == origin) // up
+            {
+                square_indices.Add(new Index(offset.y, offset.x + 1));
+                square_indices.Add(new Index(offset.y + 1, offset.x));
+                square_indices.Add(new Index(offset.y + 1, offset.x + 1));
+            }
+            if (offset.y > 0 && tiles[offset.y - 1, offset.x + 1] == origin) // down
+            {
+                square_indices.Add(new Index(offset.y, offset.x + 1));
+                square_indices.Add(new Index(offset.y - 1, offset.x));
+                square_indices.Add(new Index(offset.y - 1, offset.x + 1));
+            }
+        }
+
+        square_indices = square_indices.Distinct<Index>().ToList();
+
+        return square_indices;
+    }
+    List<Index> GetHorizontalMatchedIndices(Index offset, Sprite origin)
+    {
+        List<Index> horizontal_indices = new List<Index>();
+        int i = 0;
+        while (offset.x - i >= 0 && tiles[offset.y, offset.x - i].GetComponent<SpriteRenderer>().sprite == origin)
+            horizontal_indices.Add(new Index(offset.x - i++, offset.y));
+        i = 1;
+        while (offset.x + i < board_size && tiles[offset.y, offset.x + i].GetComponent<SpriteRenderer>().sprite == origin)
+            horizontal_indices.Add(new Index(offset.x + i++, offset.y));
+        return horizontal_indices;
+    }
+    List<Index> GetVerticalMatchedIndices(Index offset, Sprite origin)
+    {
+        List<Index> vertical_indices = new List<Index>();
+
+        int i = 0;
+        while (offset.y - i >= 0 && tiles[offset.y - i, offset.x].GetComponent<SpriteRenderer>().sprite == origin)
+            vertical_indices.Add(new Index(offset.x, offset.y - i++));
+        i = 1;
+        while (offset.y + i < board_size && tiles[offset.y + i, offset.x].GetComponent<SpriteRenderer>().sprite == origin)
+            vertical_indices.Add(new Index(offset.x, offset.y + i++));
+
+        return vertical_indices;
+    }
     public List<Index> Match(Index offset)
     {
         Sprite origin = tiles[offset.y, offset.x].GetComponent<SpriteRenderer>().sprite;
         if (origin != null)
         {
-            List<Index> horizontal_indices = new List<Index>();
-            List<Index> vertical_indices = new List<Index>();
-            horizontal_indices.Add(new Index(offset.x, offset.y));
-            vertical_indices.Add(new Index(offset.x, offset.y));
-
-            int i = 1;
-            while (offset.x - i >= 0 && tiles[offset.y, offset.x - i].GetComponent<SpriteRenderer>().sprite == origin)
-                horizontal_indices.Add(new Index(offset.x - i++, offset.y));
-            i = 1;
-            while (offset.x + i < board_size && tiles[offset.y, offset.x + i].GetComponent<SpriteRenderer>().sprite == origin)
-                horizontal_indices.Add(new Index(offset.x + i++, offset.y));
-            i = 1;
-            while (offset.y - i >= 0 && tiles[offset.y - i, offset.x].GetComponent<SpriteRenderer>().sprite == origin)
-                vertical_indices.Add(new Index(offset.x, offset.y - i++));
-            i = 1;
-            while (offset.y + i < board_size && tiles[offset.y + i, offset.x].GetComponent<SpriteRenderer>().sprite == origin)
-                vertical_indices.Add(new Index(offset.x, offset.y + i++));
+            List<Index> horizontal_indices = GetHorizontalMatchedIndices(offset, origin);
+            List<Index> vertical_indices = GetVerticalMatchedIndices(offset, origin);
 
             if (horizontal_indices.Count > 2)
                 for (int j = 0; j < horizontal_indices.Count; j++)

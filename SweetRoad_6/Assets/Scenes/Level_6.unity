@@ -216,6 +216,7 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 6c3ce8fb9a2af7e4c9fecb6a58876a6d, type: 3}
   - {fileID: 21300000, guid: f0f9d41c84cd23f4aacb29de3ba49c6f, type: 3}
   - {fileID: 21300000, guid: 71c86ca40a148dc409998b8e03403514, type: 3}
+  munchkin_sprite: {fileID: 21300000, guid: 68395d3a435c748479679629a5bc7967, type: 3}
   offset: {fileID: 300350807}
 --- !u!212 &231232134
 SpriteRenderer:
