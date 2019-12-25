@@ -210,6 +210,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   origin_tile: {fileID: 2304027619457484181, guid: cbdf8a5330a2fb04abcf8aa6cc994f85,
     type: 3}
+  hole: {fileID: 5799645681393237000, guid: dc0f7c6bd3c556c489881a77f6f3d6a9, type: 3}
   tile_sprites:
   - {fileID: 21300000, guid: feb31e8c1c04517438c64543230b4d45, type: 3}
   - {fileID: 21300000, guid: 75bbe2c473a3ca9438f2d7f1091dfb98, type: 3}

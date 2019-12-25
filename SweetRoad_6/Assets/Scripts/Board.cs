@@ -12,6 +12,7 @@ public class Board : MonoBehaviour
     public enum Array { UP, DOWN, LEFT, RIGHT, NONE };
     const int board_size = 7;
     public GameObject origin_tile;
+    public GameObject hole;
     public List<Sprite> tile_sprites;
     public Sprite munchkin_sprite;
     public Transform offset;
@@ -23,6 +24,7 @@ public class Board : MonoBehaviour
     void Start()
     {
         CreateBoard();
+        CreateHoles();
     }
 
     // Update is called once per frame
@@ -38,63 +40,93 @@ public class Board : MonoBehaviour
         b.GetComponent<SpriteRenderer>().sprite = temp;
     }
 
-    public IEnumerator RollTile(Index offset, Array array)
+    public IEnumerator RollTile(Index offset, Array array, float roll_delay = 0.1f)
     {
-        isMoving = true;
-        HashSet<Index> matched_cols = new HashSet<Index>();
-        switch (array)
+        if (!isMoving)
         {
-            case Array.UP:
-                for(int i = offset.y; i < board_size; i++)
-                {
-                    tiles[i, offset.x].GetComponent<SpriteRenderer>().sprite = munchkin_sprite;
-                    yield return new WaitForSeconds(0.1f);
-                    tiles[i, offset.x].GetComponent<SpriteRenderer>().sprite = null;
-                    tiles[i, offset.x].GetComponent<Tile>().particle.GetComponent<ParticleSystem>().Play();
-                    Audio.instance.PlayMatchSound();
-                    matched_cols.Add(new Index(offset.x, 0));
-                }
-                break;
-            case Array.DOWN:
-                for (int i = offset.y; i >= 0; i--)
-                {
-                    tiles[i, offset.x].GetComponent<SpriteRenderer>().sprite = munchkin_sprite;
-                    yield return new WaitForSeconds(0.1f);
-                    tiles[i, offset.x].GetComponent<SpriteRenderer>().sprite = null;
-                    tiles[i, offset.x].GetComponent<Tile>().particle.GetComponent<ParticleSystem>().Play();
-                    Audio.instance.PlayMatchSound();
-                    matched_cols.Add(new Index(offset.x, 0));
-                }
-                break;
-            case Array.LEFT:
-                for (int i = offset.x; i >= 0; i--)
-                {
-                    tiles[offset.y, i].GetComponent<SpriteRenderer>().sprite = munchkin_sprite;
-                    yield return new WaitForSeconds(0.1f);
-                    tiles[offset.y, i].GetComponent<SpriteRenderer>().sprite = null;
-                    tiles[offset.y, i].GetComponent<Tile>().particle.GetComponent<ParticleSystem>().Play();
-                    Audio.instance.PlayMatchSound();
-                    matched_cols.Add(new Index(i, 0));
-                }
-                break;
-            case Array.RIGHT:
-                for (int i = offset.x; i < board_size; i++)
-                {
-                    tiles[offset.y, i].GetComponent<SpriteRenderer>().sprite = munchkin_sprite;
-                    yield return new WaitForSeconds(0.1f);
-                    tiles[offset.y, i].GetComponent<SpriteRenderer>().sprite = null;
-                    tiles[offset.y, i].GetComponent<Tile>().particle.GetComponent<ParticleSystem>().Play();
-                    Audio.instance.PlayMatchSound();
-                    matched_cols.Add(new Index(i, 0));
-                }
-                break;
-            default:
-                break;
+            isMoving = true;
+            HashSet<Index> matched_cols = new HashSet<Index>();
+            switch (array)
+            {
+                case Array.UP:
+                    for (int i = offset.y; i < board_size; i++)
+                    {
+                        tiles[i, offset.x].GetComponent<SpriteRenderer>().sprite = munchkin_sprite;
+                        yield return new WaitForSeconds(roll_delay);
+                        tiles[i, offset.x].GetComponent<SpriteRenderer>().sprite = null;
+                        tiles[i, offset.x].GetComponent<Tile>().particle.GetComponent<ParticleSystem>().Play();
+                        Audio.instance.PlayMatchSound();
+                        matched_cols.Add(new Index(offset.x, 0));
+                    }
+                    tiles[board_size - 1, offset.x].GetComponent<SpriteRenderer>().sprite = munchkin_sprite;
+                    tiles[board_size - 1, offset.x].transform.
+                        Translate(new Vector3(0, origin_tile.GetComponent<Renderer>().bounds.size.y, 0));
+                    yield return new WaitForSeconds(roll_delay);
+                    tiles[board_size - 1, offset.x].transform.
+                        Translate(new Vector3(0, -origin_tile.GetComponent<Renderer>().bounds.size.y, 0));
+                    tiles[board_size - 1, offset.x].GetComponent<SpriteRenderer>().sprite = null;
+                    break;
+                case Array.DOWN:
+                    for (int i = offset.y; i >= 0; i--)
+                    {
+                        tiles[i, offset.x].GetComponent<SpriteRenderer>().sprite = munchkin_sprite;
+                        yield return new WaitForSeconds(roll_delay);
+                        tiles[i, offset.x].GetComponent<SpriteRenderer>().sprite = null;
+                        tiles[i, offset.x].GetComponent<Tile>().particle.GetComponent<ParticleSystem>().Play();
+                        Audio.instance.PlayMatchSound();
+                        matched_cols.Add(new Index(offset.x, 0));
+                    }
+                    tiles[0, offset.x].GetComponent<SpriteRenderer>().sprite = munchkin_sprite;
+                    tiles[0, offset.x].transform.
+                        Translate(new Vector3(0, -origin_tile.GetComponent<Renderer>().bounds.size.y, 0));
+                    yield return new WaitForSeconds(roll_delay);
+                    tiles[0, offset.x].transform.
+                        Translate(new Vector3(0, origin_tile.GetComponent<Renderer>().bounds.size.y, 0));
+                    tiles[0, offset.x].GetComponent<SpriteRenderer>().sprite = null;
+                    break;
+                case Array.LEFT:
+                    for (int i = offset.x; i >= 0; i--)
+                    {
+                        tiles[offset.y, i].GetComponent<SpriteRenderer>().sprite = munchkin_sprite;
+                        yield return new WaitForSeconds(roll_delay);
+                        tiles[offset.y, i].GetComponent<SpriteRenderer>().sprite = null;
+                        tiles[offset.y, i].GetComponent<Tile>().particle.GetComponent<ParticleSystem>().Play();
+                        Audio.instance.PlayMatchSound();
+                        matched_cols.Add(new Index(i, 0));
+                    }
+                    tiles[offset.y, 0].GetComponent<SpriteRenderer>().sprite = munchkin_sprite;
+                    tiles[offset.y, 0].transform.
+                        Translate(new Vector3(-origin_tile.GetComponent<Renderer>().bounds.size.x, 0, 0));
+                    yield return new WaitForSeconds(roll_delay);
+                    tiles[offset.y, 0].transform.
+                        Translate(new Vector3(origin_tile.GetComponent<Renderer>().bounds.size.x, 0, 0));
+                    tiles[offset.y, 0].GetComponent<SpriteRenderer>().sprite = null;
+                    break;
+                case Array.RIGHT:
+                    for (int i = offset.x; i < board_size; i++)
+                    {
+                        tiles[offset.y, i].GetComponent<SpriteRenderer>().sprite = munchkin_sprite;
+                        yield return new WaitForSeconds(roll_delay);
+                        tiles[offset.y, i].GetComponent<SpriteRenderer>().sprite = null;
+                        tiles[offset.y, i].GetComponent<Tile>().particle.GetComponent<ParticleSystem>().Play();
+                        Audio.instance.PlayMatchSound();
+                        matched_cols.Add(new Index(i, 0));
+                    }
+                    tiles[offset.y, board_size - 1].GetComponent<SpriteRenderer>().sprite = munchkin_sprite;
+                    tiles[offset.y, board_size - 1].transform.
+                        Translate(new Vector3(origin_tile.GetComponent<Renderer>().bounds.size.x, 0, 0));
+                    yield return new WaitForSeconds(roll_delay);
+                    tiles[offset.y, board_size - 1].transform.
+                        Translate(new Vector3(-origin_tile.GetComponent<Renderer>().bounds.size.x, 0, 0));
+                    tiles[offset.y, board_size - 1].GetComponent<SpriteRenderer>().sprite = null;
+                    break;
+                default:
+                    break;
+            }
+            foreach (Index i in matched_cols)
+                StartCoroutine(DropTile(i));
+            isMoving = false;
         }
-        foreach (Index i in matched_cols)
-            StartCoroutine(DropTile(i));
-        isMoving = false;
-        yield return null;
     }
 
     public IEnumerator SwapTile(Index tile_index, Index swap_index, float swap_delay = 0.3f)
@@ -103,26 +135,27 @@ public class Board : MonoBehaviour
         {
             isMoving = true;
             if (swap_index.y >= 0 && swap_index.x >= 0 && swap_index.y < board_size && swap_index.x < board_size)
-                SwapSprite(ref tiles[tile_index.y, tile_index.x], ref tiles[swap_index.y, swap_index.x]);
-
-            yield return new WaitForSeconds(swap_delay);
-
-            HashSet<Index> matched_indices = new HashSet<Index>();
-            matched_indices.UnionWith(Match(tile_index));
-            matched_indices.UnionWith(Match(swap_index));
-
-            if (matched_indices.Count > 0)
-            {
-                HashSet<Index> matched_cols = ClearTiles(matched_indices);
-                yield return new WaitForSeconds(swap_delay);
-                foreach (Index i in matched_cols)
-                    StartCoroutine(DropTile(i));
-                
-            }
-            else if (swap_index.y >= 0 && swap_index.x >= 0 && swap_index.y < board_size && swap_index.x < board_size)
             {
                 SwapSprite(ref tiles[tile_index.y, tile_index.x], ref tiles[swap_index.y, swap_index.x]);
+
                 yield return new WaitForSeconds(swap_delay);
+
+                HashSet<Index> matched_indices = new HashSet<Index>();
+                matched_indices.UnionWith(Match(tile_index));
+                matched_indices.UnionWith(Match(swap_index));
+
+                if (matched_indices.Count > 0)
+                {
+                    HashSet<Index> matched_cols = ClearTiles(matched_indices);
+                    yield return new WaitForSeconds(swap_delay);
+                    foreach (Index i in matched_cols)
+                        StartCoroutine(DropTile(i));
+                }
+                else
+                {
+                    SwapSprite(ref tiles[tile_index.y, tile_index.x], ref tiles[swap_index.y, swap_index.x]);
+                    yield return new WaitForSeconds(swap_delay);
+                }
                 isMoving = false;
             }
         }
@@ -277,7 +310,7 @@ public class Board : MonoBehaviour
             return new HashSet<Index>();
     }
 
-    private void CreateBoard()
+    void CreateBoard()
     {
         tiles = new GameObject[board_size, board_size];
         for (int i = 0; i < board_size; i++)
@@ -286,7 +319,7 @@ public class Board : MonoBehaviour
             {
                 Vector2 render_size = origin_tile.GetComponent<Renderer>().bounds.size;
                 GameObject new_tile = Instantiate(origin_tile, new Vector3(offset.position.x + render_size.x * j,
-                    offset.position.y + render_size.y * i, 0), transform.rotation);
+                    offset.position.y + render_size.y * i, 0), origin_tile.transform.rotation);
 
                 List<Sprite> non_repeated_sprites = new List<Sprite>(tile_sprites);
                 if (j - 2 >= 0)
@@ -302,4 +335,20 @@ public class Board : MonoBehaviour
         }
     }
 
+    void CreateHoles()
+    {
+        Vector2 render_size = hole.GetComponent<Renderer>().bounds.size;
+        for (int i = 0; i < board_size; i++)
+            Instantiate(hole, new Vector3(offset.position.x + render_size.x * i, 
+                offset.position.y + render_size.y * board_size ,0), hole.transform.rotation);
+        for (int i = 0; i < board_size; i++)
+            Instantiate(hole, new Vector3(offset.position.x + render_size.x * i,
+                offset.position.y - render_size.y, 0), hole.transform.rotation);
+        for (int i = 0; i < board_size; i++)
+            Instantiate(hole, new Vector3(offset.position.x - render_size.x,
+                offset.position.y + render_size.y * i, 0), hole.transform.rotation);
+        for (int i = 0; i < board_size; i++)
+            Instantiate(hole, new Vector3(offset.position.x + render_size.x * board_size,
+                offset.position.y + render_size.y * i, 0), hole.transform.rotation);
+    }
 }
