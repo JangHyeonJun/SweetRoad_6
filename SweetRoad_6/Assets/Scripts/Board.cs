@@ -197,66 +197,72 @@ public class Board : MonoBehaviour
     HashSet<Index> GetSquareMatchedIndices(Index offset, Sprite origin)
     {
         HashSet<Index> square_indices = new HashSet<Index>();
-        square_indices.Add(new Index(offset.x, offset.y));
-        if (offset.x > 0 && tiles[offset.y, offset.x - 1].GetComponent<SpriteRenderer>().sprite == origin) // left
+        if (origin != munchkin_sprite)
         {
-            if (offset.y < board_size - 1 && tiles[offset.y + 1, offset.x].GetComponent<SpriteRenderer>().sprite == origin &&
-                offset.y < board_size - 1 && tiles[offset.y + 1, offset.x - 1].GetComponent<SpriteRenderer>().sprite == origin) // up
+            square_indices.Add(new Index(offset.x, offset.y));
+            if (offset.x > 0 && tiles[offset.y, offset.x - 1].GetComponent<SpriteRenderer>().sprite == origin) // left
             {
-                square_indices.Add(new Index(offset.x - 1, offset.y));
-                square_indices.Add(new Index(offset.x, offset.y + 1));
-                square_indices.Add(new Index(offset.x - 1, offset.y + 1));
+                if (offset.y < board_size - 1 && tiles[offset.y + 1, offset.x].GetComponent<SpriteRenderer>().sprite == origin &&
+                    offset.y < board_size - 1 && tiles[offset.y + 1, offset.x - 1].GetComponent<SpriteRenderer>().sprite == origin) // up
+                {
+                    square_indices.Add(new Index(offset.x - 1, offset.y));
+                    square_indices.Add(new Index(offset.x, offset.y + 1));
+                    square_indices.Add(new Index(offset.x - 1, offset.y + 1));
+                }
+                if (offset.y > 0 && tiles[offset.y - 1, offset.x].GetComponent<SpriteRenderer>().sprite == origin &&
+                    offset.y > 0 && tiles[offset.y - 1, offset.x - 1].GetComponent<SpriteRenderer>().sprite == origin) // down
+                {
+                    square_indices.Add(new Index(offset.x - 1, offset.y));
+                    square_indices.Add(new Index(offset.x, offset.y - 1));
+                    square_indices.Add(new Index(offset.x - 1, offset.y - 1));
+                }
             }
-            if (offset.y > 0 && tiles[offset.y - 1, offset.x].GetComponent<SpriteRenderer>().sprite == origin &&
-                offset.y > 0 && tiles[offset.y - 1, offset.x - 1].GetComponent<SpriteRenderer>().sprite == origin) // down
+            if (offset.x < board_size - 1 && tiles[offset.y, offset.x + 1].GetComponent<SpriteRenderer>().sprite == origin) // right
             {
-                square_indices.Add(new Index(offset.x - 1, offset.y));
-                square_indices.Add(new Index(offset.x, offset.y - 1));
-                square_indices.Add(new Index(offset.x - 1, offset.y - 1));
+                if (offset.y < board_size - 1 && tiles[offset.y + 1, offset.x].GetComponent<SpriteRenderer>().sprite == origin &&
+                    offset.y < board_size - 1 && tiles[offset.y + 1, offset.x + 1].GetComponent<SpriteRenderer>().sprite == origin) // up
+                {
+                    square_indices.Add(new Index(offset.x + 1, offset.y));
+                    square_indices.Add(new Index(offset.x, offset.y + 1));
+                    square_indices.Add(new Index(offset.x + 1, offset.y + 1));
+                }
+                if (offset.y > 0 && tiles[offset.y - 1, offset.x].GetComponent<SpriteRenderer>().sprite == origin &&
+                    offset.y > 0 && tiles[offset.y - 1, offset.x + 1].GetComponent<SpriteRenderer>().sprite == origin) // down
+                {
+                    square_indices.Add(new Index(offset.x + 1, offset.y));
+                    square_indices.Add(new Index(offset.x, offset.y - 1));
+                    square_indices.Add(new Index(offset.x + 1, offset.y - 1));
+                }
             }
         }
-        if (offset.x < board_size - 1 && tiles[offset.y, offset.x + 1].GetComponent<SpriteRenderer>().sprite == origin) // right
-        {
-            if (offset.y < board_size - 1 && tiles[offset.y + 1, offset.x].GetComponent<SpriteRenderer>().sprite == origin &&
-                offset.y < board_size - 1 && tiles[offset.y + 1, offset.x + 1].GetComponent<SpriteRenderer>().sprite == origin) // up
-            {
-                square_indices.Add(new Index(offset.x + 1, offset.y));
-                square_indices.Add(new Index(offset.x, offset.y + 1));
-                square_indices.Add(new Index(offset.x + 1, offset.y + 1));
-            }
-            if (offset.y > 0 && tiles[offset.y - 1, offset.x].GetComponent<SpriteRenderer>().sprite == origin &&
-                offset.y > 0 && tiles[offset.y - 1, offset.x + 1].GetComponent<SpriteRenderer>().sprite == origin) // down
-            {
-                square_indices.Add(new Index(offset.x + 1, offset.y));
-                square_indices.Add(new Index(offset.x, offset.y - 1));
-                square_indices.Add(new Index(offset.x + 1, offset.y - 1));
-            }
-        }
-
         return square_indices;
     }
     HashSet<Index> GetHorizontalMatchedIndices(Index offset, Sprite origin)
     {
         HashSet<Index> horizontal_indices = new HashSet<Index>();
-        int i = 0;
-        while (offset.x - i >= 0 && tiles[offset.y, offset.x - i].GetComponent<SpriteRenderer>().sprite == origin)
-            horizontal_indices.Add(new Index(offset.x - i++, offset.y));
-        i = 1;
-        while (offset.x + i < board_size && tiles[offset.y, offset.x + i].GetComponent<SpriteRenderer>().sprite == origin)
-            horizontal_indices.Add(new Index(offset.x + i++, offset.y));
+        if (origin != munchkin_sprite)
+        {
+            int i = 0;
+            while (offset.x - i >= 0 && tiles[offset.y, offset.x - i].GetComponent<SpriteRenderer>().sprite == origin)
+                horizontal_indices.Add(new Index(offset.x - i++, offset.y));
+            i = 1;
+            while (offset.x + i < board_size && tiles[offset.y, offset.x + i].GetComponent<SpriteRenderer>().sprite == origin)
+                horizontal_indices.Add(new Index(offset.x + i++, offset.y));
+        }
         return horizontal_indices;
     }
     HashSet<Index> GetVerticalMatchedIndices(Index offset, Sprite origin)
     {
         HashSet<Index> vertical_indices = new HashSet<Index>();
-
-        int i = 0;
-        while (offset.y - i >= 0 && tiles[offset.y - i, offset.x].GetComponent<SpriteRenderer>().sprite == origin)
-            vertical_indices.Add(new Index(offset.x, offset.y - i++));
-        i = 1;
-        while (offset.y + i < board_size && tiles[offset.y + i, offset.x].GetComponent<SpriteRenderer>().sprite == origin)
-            vertical_indices.Add(new Index(offset.x, offset.y + i++));
-
+        if (origin != munchkin_sprite)
+        {
+            int i = 0;
+            while (offset.y - i >= 0 && tiles[offset.y - i, offset.x].GetComponent<SpriteRenderer>().sprite == origin)
+                vertical_indices.Add(new Index(offset.x, offset.y - i++));
+            i = 1;
+            while (offset.y + i < board_size && tiles[offset.y + i, offset.x].GetComponent<SpriteRenderer>().sprite == origin)
+                vertical_indices.Add(new Index(offset.x, offset.y + i++));
+        }
         return vertical_indices;
     }
 
