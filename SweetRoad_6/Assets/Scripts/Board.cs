@@ -47,20 +47,21 @@ public class Board : MonoBehaviour
 
             yield return new WaitForSeconds(swap_delay);
 
-            List<Index> matched_indices = new List<Index>();
-            matched_indices.AddRange(Match(tile_index));
-            matched_indices.AddRange(Match(swap_index));
+            HashSet<Index> matched_indices = new HashSet<Index>();
+            matched_indices.UnionWith(Match(tile_index));
+            matched_indices.UnionWith(Match(swap_index));
 
             if (matched_indices.Count > 0)
             {
-                for (int i = 0; i < matched_indices.Count; i++)
-                    StartCoroutine(DropTile(matched_indices[i]));
+                HashSet<Index> matched_cols = ClearTiles(matched_indices);
+                foreach (Index i in matched_cols)
+                    StartCoroutine(DropTile(i));
+                
             }
             else if (swap_index.y >= 0 && swap_index.x >= 0 && swap_index.y < board_size && swap_index.x < board_size)
             {
                 SwapSprite(ref tiles[tile_index.y, tile_index.x], ref tiles[swap_index.y, swap_index.x]);
                 yield return new WaitForSeconds(swap_delay);
-                isMoving = false;
             }
         }
     }
@@ -82,33 +83,31 @@ public class Board : MonoBehaviour
                 yield return new WaitForSeconds(drop_delay);
             }
             else
-                i++; 
+                i++;
         }
 
-        List<Index> matched_indices = new List<Index>();
-        for (int k = 0; k < board_size; k++)
-            matched_indices.AddRange(Match(new Index(x, k)));
+        HashSet<Index> matched_indices = new HashSet<Index>();
+        for (int i = 0; i < board_size; i++)
+            matched_indices.UnionWith(Match(new Index(x, i)));
 
-        if (matched_indices.Count > 0)
-        {
-            for (int k = 0; k < matched_indices.Count; k++)
-                StartCoroutine(DropTile(matched_indices[k]));
-        }
+        HashSet<Index> matched_cols = ClearTiles(matched_indices);
+        foreach (Index i in matched_cols)
+            StartCoroutine(DropTile(i));
 
         isMoving = false;
     }
 
-    List<Index> GetSquareMatchedIndices(Index offset, Sprite origin)
+    HashSet<Index> GetSquareMatchedIndices(Index offset, Sprite origin)
     {
-        List<Index> square_indices = new List<Index>();
-        HashSet<Index> square_indices2 = new HashSet<Index>();
+        HashSet<Index> square_indices = new HashSet<Index>();
+        square_indices.Add(new Index(offset.y, offset.x));
         if (offset.x > 0 && tiles[offset.y, offset.x - 1].GetComponent<SpriteRenderer>().sprite == origin) // left
         {
             if (offset.y < board_size - 1 && tiles[offset.y + 1, offset.x - 1] == origin) // up
             {
-                square_indices.Add(new Index(offset.y, offset.x-1));
-                square_indices.Add(new Index(offset.y+1, offset.x));
-                square_indices.Add(new Index(offset.y+1, offset.x-1));
+                square_indices.Add(new Index(offset.y, offset.x - 1));
+                square_indices.Add(new Index(offset.y + 1, offset.x));
+                square_indices.Add(new Index(offset.y + 1, offset.x - 1));
             }
             if (offset.y > 0 && tiles[offset.y - 1, offset.x - 1] == origin) // down
             {
@@ -133,13 +132,11 @@ public class Board : MonoBehaviour
             }
         }
 
-        square_indices = square_indices.Distinct<Index>().ToList();
-
         return square_indices;
     }
-    List<Index> GetHorizontalMatchedIndices(Index offset, Sprite origin)
+    HashSet<Index> GetHorizontalMatchedIndices(Index offset, Sprite origin)
     {
-        List<Index> horizontal_indices = new List<Index>();
+        HashSet<Index> horizontal_indices = new HashSet<Index>();
         int i = 0;
         while (offset.x - i >= 0 && tiles[offset.y, offset.x - i].GetComponent<SpriteRenderer>().sprite == origin)
             horizontal_indices.Add(new Index(offset.x - i++, offset.y));
@@ -148,9 +145,9 @@ public class Board : MonoBehaviour
             horizontal_indices.Add(new Index(offset.x + i++, offset.y));
         return horizontal_indices;
     }
-    List<Index> GetVerticalMatchedIndices(Index offset, Sprite origin)
+    HashSet<Index> GetVerticalMatchedIndices(Index offset, Sprite origin)
     {
-        List<Index> vertical_indices = new List<Index>();
+        HashSet<Index> vertical_indices = new HashSet<Index>();
 
         int i = 0;
         while (offset.y - i >= 0 && tiles[offset.y - i, offset.x].GetComponent<SpriteRenderer>().sprite == origin)
@@ -161,42 +158,48 @@ public class Board : MonoBehaviour
 
         return vertical_indices;
     }
-    public List<Index> Match(Index offset)
+
+    HashSet<Index> ClearTiles(HashSet<Index> matched_indices)
+    {
+        HashSet<Index> matched_cols = new HashSet<Index>();
+        if (matched_indices.Count > 0)
+        {
+            foreach (Index i in matched_indices)
+            {
+                tiles[i.y, i.x].GetComponent<SpriteRenderer>().sprite = null;
+                tiles[i.y, i.x].GetComponent<Tile>().particle.GetComponent<ParticleSystem>().Play();
+                matched_cols.Add(new Index(i.x, 0));
+            }
+            Audio.instance.PlayMatchSound();
+        }
+
+        return matched_cols;
+    }
+    public HashSet<Index> Match(Index offset)
     {
         Sprite origin = tiles[offset.y, offset.x].GetComponent<SpriteRenderer>().sprite;
         if (origin != null)
         {
-            List<Index> horizontal_indices = GetHorizontalMatchedIndices(offset, origin);
-            List<Index> vertical_indices = GetVerticalMatchedIndices(offset, origin);
+            HashSet<Index> horizontal_indices = GetHorizontalMatchedIndices(offset, origin);
+            HashSet<Index> vertical_indices = GetVerticalMatchedIndices(offset, origin);
 
-            if (horizontal_indices.Count > 2)
-                for (int j = 0; j < horizontal_indices.Count; j++)
-                {
-                    int x = horizontal_indices[j].x;
-                    int y = horizontal_indices[j].y;
-                    tiles[y, x].GetComponent<SpriteRenderer>().sprite = null;
-                    tiles[y, x].GetComponent<Tile>().particle.GetComponent<ParticleSystem>().Play();
-                }
+            HashSet<Index> matched_indices = new HashSet<Index>();
 
-            if (vertical_indices.Count > 2)
-                for (int j = 0; j < vertical_indices.Count; j++)
-                {
-                    int x = vertical_indices[j].x;
-                    int y = vertical_indices[j].y;
-                    tiles[y, x].GetComponent<SpriteRenderer>().sprite = null;
-                    tiles[y, x].GetComponent<Tile>().particle.GetComponent<ParticleSystem>().Play();
-                }
+            if (horizontal_indices.Count >= 3)
+                matched_indices.UnionWith(horizontal_indices);
+            if (vertical_indices.Count >= 3)
+                matched_indices.UnionWith(vertical_indices);
 
-            if (horizontal_indices.Count > 2 || vertical_indices.Count > 2)
+            if (matched_indices.Count > 0)
             {
                 Audio.instance.PlayMatchSound();
-                return horizontal_indices;
+                return matched_indices;
             }
             else
-                return new List<Index>();
+                return new HashSet<Index>();
         }
         else
-            return new List<Index>();
+            return new HashSet<Index>();
     }
 
     private void CreateBoard()
