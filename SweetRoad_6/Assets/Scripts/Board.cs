@@ -141,11 +141,11 @@ public class Board : MonoBehaviour
                     tiles[offset.y, board_size - 1].GetComponent<SpriteRenderer>().sprite = null;
                     break;
                 default:
+                    isMoving = true;
                     break;
             }
             foreach (Index i in matched_cols)
                 StartCoroutine(DropTile(i));
-            isMoving = false;
         }
     }
 
@@ -176,22 +176,22 @@ public class Board : MonoBehaviour
                 {
                     SwapSprite(ref tiles[tile_index.y, tile_index.x], ref tiles[swap_index.y, swap_index.x]);
                     yield return new WaitForSeconds(swap_delay);
+                    isMoving = false;
                 }
-                isMoving = false;
             }
         }
     }
 
     public IEnumerator DropTile(Index drop_index, float drop_delay = 0.2f)
     {
+        isMoving = true;
         int x = drop_index.x;
         int y = drop_index.y;
-
+        
         for (int i = 0; i < board_size;)
         {
             if (tiles[i, x].GetComponent<SpriteRenderer>().sprite == null)
             {
-                isMoving = true;
                 for (int j = i; j < board_size - 1; j++)
                     SwapSprite(ref tiles[j, x], ref tiles[j + 1, x]);
                 tiles[board_size - 1, x].GetComponent<SpriteRenderer>().sprite = tile_sprites[Random.Range(0, tile_sprites.Count)];
@@ -201,7 +201,6 @@ public class Board : MonoBehaviour
             else
                 i++;
         }
-        isMoving = false;
 
         //        yield return new WaitForSeconds(0.8f);
 

@@ -23,6 +23,7 @@ public class GameManager : MonoBehaviour
     public Text result_score_text;
 
     public Button close_button;
+    public Button setting_button;
 
     // Start is called before the first frame update
     void Start()
@@ -65,12 +66,14 @@ public class GameManager : MonoBehaviour
         Time.timeScale = 0.0f;
         close_button.gameObject.SetActive(true);
         result_ui.gameObject.SetActive(true);
+        setting_button.gameObject.SetActive(false);
     }
 
     public void CloseSetting()
     {
         close_button.gameObject.SetActive(false);
         result_ui.gameObject.SetActive(false);
+        setting_button.gameObject.SetActive(true);
         Time.timeScale = 1.0f;
     }
 
